@@ -111,10 +111,6 @@ class List extends React.Component {
         this.deleteFromList = this.deleteFromList.bind(this);
     }
     componentWillReceiveProps(newProps) {
-        console.log('inside List component will recieve props');
-        console.log(newProps.name);
-        console.log(newProps.todos);
-        console.log(newProps.completed);
         this.setState({
             name: newProps.name,
             todos: newProps.todos,
@@ -176,6 +172,7 @@ class List extends React.Component {
     render() {
         return(
             <div className="items-container">
+                <h2>{this.state.name}</h2>
                 <AddItem addToDo={this.addToDo} />
                 <ToDoContainer deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.state.todos} />
                 <CompletedContainer deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.state.completed} />
@@ -191,9 +188,6 @@ class ListMaker extends React.Component {
         }
     }
     componentWillReceiveProps(newProps) {
-        console.log('inside componentWillReceiveProps');
-        console.log(newProps.activeList.todos);
-        console.log(newProps.activeList.completed);
         this.setState({
             list: newProps.activeList
         });
@@ -210,20 +204,26 @@ class Lists extends React.Component {
     constructor(props) {
         super(props);
         this.state ={
-            names: this.props.names,
+            lists: this.props.lists,
         }
         this.handleClick = this.handleClick.bind(this);
+        this.addList = this.addList.bind(this);
     }
     handleClick(e) {
         this.props.changeActiveList(e);
     }
+    addList() {
+        var userInput = prompt("enter list's name");
+        this.props.addList(userInput);
+    }
     render() {
-        const lists = this.state.names.map(
-            (name, index) => <button className="list-button" onClick={this.handleClick} key={index} value={name}>{name}</button>
+        const listsButtons = this.state.lists.map(
+            (list, index) => <button className="list-button" onClick={this.handleClick} key={index} value={list.name}>{list.name}</button>
         )
         return(
             <div id="lists-container">
-                {lists}
+                {listsButtons}
+                <button className="list-button" id="add-list" onClick={this.addList}>+</button>
             </div>
         );
     }
@@ -248,7 +248,6 @@ class App extends React.Component {
                     todos: [],
                     completed: []
                 }
-
             ],
             activeList: {
                 name: null,
@@ -257,11 +256,9 @@ class App extends React.Component {
             }   
         }
         this.changeActiveList = this.changeActiveList.bind(this);
+        this.addList = this.addList.bind(this);
     }
     changeActiveList(e) {
-        console.log('the event target value is: ' + e.target.value);
-        console.log('return todos is: ' +returnTodos(this.state.lists, e.target.value));
-        console.log('return completed is: ' + returnCompleted(this.state.lists, e.target.value));
         this.setState({
             activeList: {
                 name: e.target.value,
@@ -270,18 +267,32 @@ class App extends React.Component {
             }
         });
     }
+    addList(input) {
+        var newList = {};
+        newList.name = input;
+        newList.todos = [];
+        newList.completed = [];
+        var currentLists = this.state.lists;
+        currentLists.push(newList);
+        this.setState({
+            lists: currentLists,
+            activeList: {
+                name: newList.name,
+                todos: newList.todos,
+                completed: newList.completed
+            }
+        });
+    }
     render() {
         const names = this.state.lists.map(
-            (list) => list.name 
+            (list) => list.name
         );
-        console.log(names);
-        console.log('active list is: ');
-        console.log(this.state.activeList);
+        console.log(this.state.lists);
         return(
             <div>
                 <Header></Header>
                 <div id="app-container">
-                    <Lists changeActiveList={this.changeActiveList} names={names} />
+                    <Lists addList={this.addList} changeActiveList={this.changeActiveList} lists={this.state.lists} />
                     { this.state.activeList.name !== null &&
                     <ListMaker activeList={this.state.activeList}/>
                     }
