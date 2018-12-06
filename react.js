@@ -200,7 +200,7 @@ class ListMaker extends React.Component {
     }
     render() {
         return(
-            <div>
+            <div id="active-list">
                 <List name={this.state.list.name} todos={this.state.list.todos} completed={this.state.list.completed} />
             </div>
         );
@@ -281,17 +281,11 @@ class App extends React.Component {
             <div>
                 <Header></Header>
                 <div id="app-container">
-                    <div>
-                        <Lists changeActiveList={this.changeActiveList} names={names} />
-                    </div>
-                    <div>
-                        { this.state.activeList.name !== null &&
-                        <ListMaker activeList={this.state.activeList}/>
-                        }
-                    </div>
-                    <div>
-                        {/* <ToDoDetails/> */}
-                    </div>
+                    <Lists changeActiveList={this.changeActiveList} names={names} />
+                    { this.state.activeList.name !== null &&
+                    <ListMaker activeList={this.state.activeList}/>
+                    }
+                    {/* <ToDoDetails/> */}
                 </div>
             </div>
         );
