@@ -31,17 +31,22 @@ class CompletedContainer extends React.Component {
             completedArray: this.props.pushedArray
         };
         this.handleChange = this.handleChange.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
     }
     handleChange(e) {
         e.preventDefault();
         this.props.toggleToDo(e.target);
     }
+    handleDelete(e) {
+        this.props.deleteFromList(e.target.previousSibling.previousSibling);
+    }
     render() {
         const completed = this.state.completedArray.map(
             (item, index) =>
-            <li key={index} className="completed">
+            <li key={index} className="item completed">
                 <input value={item} onChange={this.handleChange} type="checkbox" name="completed" checked />
                 {item}
+                <span onClick={this.handleDelete} className="delete">&nbsp;&#10007;&nbsp;</span>
             </li>
         )
         return (
@@ -58,17 +63,22 @@ class ToDoContainer extends React.Component {
             todoArray: this.props.pushedArray
         }
         this.handleChange = this.handleChange.bind(this);
+        this.handleDelete = this.handleDelete.bind(this);
     }
     handleChange(e) {
         e.preventDefault();
         this.props.toggleToDo(e.target);
     }
+    handleDelete(e) {
+        this.props.deleteFromList(e.target.previousSibling.previousSibling);
+    }
     render() {
         const todos = this.state.todoArray.map(
             (item, index) =>
-            <li key={index} className="todo">
+            <li key={index} className="item todo">
                 <input value={item} onChange={this.handleChange} type="checkbox" name="todo"/>
                 {item}
+                <span onClick={this.handleDelete} className="delete">&nbsp;&#10007;&nbsp;</span>
             </li>
         )
         return(
@@ -87,6 +97,7 @@ class List extends React.Component {
         }
         this.addToDo = this.addToDo.bind(this);
         this.toggleToDo = this.toggleToDo.bind(this);
+        this.deleteFromList = this.deleteFromList.bind(this);
     }
     addToDo(input) {
         var newItem = input.value;
@@ -97,7 +108,6 @@ class List extends React.Component {
         });
     }
     toggleToDo(checkbox) {
-        console.log('the text of the checked box is: ' + checkbox.value);
         if(checkbox.name === 'todo') {
             var newTodos = this.state.todos;
             var indexToRemove = newTodos.indexOf(checkbox.value);
@@ -122,12 +132,31 @@ class List extends React.Component {
             console.log('unexpected checkbox name');
         }
     }
+    deleteFromList(itemToDelete) {
+        if(itemToDelete.name === 'todo') {
+            var newTodos = this.state.todos;
+            var indexToRemove = newTodos.indexOf(itemToDelete.value);
+            newTodos.splice(indexToRemove, 1);
+            this.setState({
+                todos: newTodos
+            });
+        } else if(itemToDelete.name === 'completed') {
+            var newCompleted = this.state.completed;
+            var indexToRemove = newCompleted.indexOf(itemToDelete.value);
+            newCompleted.splice(indexToRemove, 1);
+            this.setState({
+                completed: newCompleted
+            });
+        } else {
+            console.log('unexpected checkbox name');
+        }
+    }
     render() {
         return(
             <div className="items-container">
                 <AddItem addToDo={this.addToDo} />
-                <ToDoContainer toggleToDo={this.toggleToDo} pushedArray={this.state.todos} />
-                <CompletedContainer toggleToDo={this.toggleToDo} pushedArray={this.state.completed} />
+                <ToDoContainer deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.state.todos} />
+                <CompletedContainer deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.state.completed} />
             </div>
         );
     }
