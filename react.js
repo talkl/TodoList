@@ -135,9 +135,6 @@ class ListMaker extends React.Component {
 class Lists extends React.Component {
     constructor(props) {
         super(props);
-        this.state ={
-            lists: this.props.lists,
-        }
         this.handleClick = this.handleClick.bind(this);
         this.addList = this.addList.bind(this);
     }
@@ -149,7 +146,7 @@ class Lists extends React.Component {
         this.props.addList(userInput);
     }
     render() {
-        const listsButtons = this.state.lists.map(
+        const listsButtons = this.props.lists.map(
             (list, index) => <button className="list-button" onClick={this.handleClick} key={index} value={list.name}>{list.name}</button>
         )
         return(
@@ -164,23 +161,7 @@ class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            lists: [
-                {
-                    name: 'groceries',
-                    todos: ['banana', 'apple', 'eggs'],
-                    completed: ['water', 'diet coca-cola']
-                },
-                {
-                    name: 'study',
-                    todos: [],
-                    completed: ['history', 'science']
-                },
-                {
-                    name: 'empty list',
-                    todos: [],
-                    completed: []
-                }
-            ],
+            lists: [],
             activeList: null
         }
         this.changeActiveList = this.changeActiveList.bind(this);
@@ -188,6 +169,54 @@ class App extends React.Component {
         this.addToDo = this.addToDo.bind(this);
         this.toggleToDo = this.toggleToDo.bind(this);
         this.deleteFromList = this.deleteFromList.bind(this);
+        this.saveStateToLocalStorage = this.saveStateToLocalStorage.bind(this);
+        this.hydrateStateWithLocalStorage = this.hydrateStateWithLocalStorage.bind(this);
+    }
+    hydrateStateWithLocalStorage() {
+        if(localStorage.getItem('lists')) {
+            let savedLists = JSON.parse(localStorage.getItem('lists'));
+            this.setState({
+                lists: savedLists
+            });
+        } else { //default lists if no local storage is found
+            this.setState({
+                lists: [
+                    {
+                        name: 'groceries',
+                        todos: ['banana', 'apple', 'eggs'],
+                        completed: ['water', 'diet coca-cola']
+                    },
+                    {
+                        name: 'study',
+                        todos: [],
+                        completed: ['history', 'science']
+                    }
+                ],
+            });
+        }
+    }
+    saveStateToLocalStorage() {
+        localStorage.setItem('lists', JSON.stringify(this.state.lists));
+    }
+    componentDidMount() {
+        this.hydrateStateWithLocalStorage();
+
+        // add event listener to save state to localStorage
+        // when user leaves/refreshes the page
+        window.addEventListener(
+            "beforeunload",
+            this.saveStateToLocalStorage.bind(this)
+        );
+    }
+
+    componentWillUnmount() {
+        window.removeEventListener(
+            "beforeunload",
+            this.saveStateToLocalStorage.bind(this)
+        );
+
+        // saves if component has a chance to unmount
+        this.saveStateToLocalStorage();
     }
     changeActiveList(e) {
         this.setState({
