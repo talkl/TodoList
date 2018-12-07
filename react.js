@@ -9,7 +9,6 @@ class AddItem extends React.Component {
     constructor(props) {
         super(props);
         this.handleSubmit = this.handleSubmit.bind(this);
-
     }
     handleSubmit(e) {
         e.preventDefault();
@@ -27,16 +26,8 @@ class AddItem extends React.Component {
 class CompletedContainer extends React.Component {
     constructor(props) {
         super(props);
-        this.state= {
-            completedArray: this.props.pushedArray
-        };
         this.handleChange = this.handleChange.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
-    }
-    componentWillReceiveProps(newProps) {
-        this.setState({
-            completedArray: newProps.pushedArray
-        })
     }
     handleChange(e) {
         e.preventDefault();
@@ -46,7 +37,7 @@ class CompletedContainer extends React.Component {
         this.props.deleteFromList(e.target.previousSibling.previousSibling);
     }
     render() {
-        const completed = this.state.completedArray.map(
+        const completed = this.props.pushedArray.map(
             (item, index) =>
             <li key={index} className="item completed">
                 <input value={item} onChange={this.handleChange} type="checkbox" name="completed" checked />
@@ -64,16 +55,8 @@ class CompletedContainer extends React.Component {
 class ToDoContainer extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            todoArray: this.props.pushedArray
-        }
         this.handleChange = this.handleChange.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
-    }
-    componentWillReceiveProps(newProps) {
-        this.setState({
-            todoArray: newProps.pushedArray
-        })
     }
     handleChange(e) {
         e.preventDefault();
@@ -83,7 +66,7 @@ class ToDoContainer extends React.Component {
         this.props.deleteFromList(e.target.previousSibling.previousSibling);
     }
     render() {
-        const todos = this.state.todoArray.map(
+        const todos = this.props.pushedArray.map(
             (item, index) =>
             <li key={index} className="item todo">
                 <input value={item} onChange={this.handleChange} type="checkbox" name="todo"/>
@@ -101,81 +84,26 @@ class ToDoContainer extends React.Component {
 class List extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            name: this.props.name,
-            todos: this.props.todos,
-            completed: this.props.completed
-        }
         this.addToDo = this.addToDo.bind(this);
         this.toggleToDo = this.toggleToDo.bind(this);
         this.deleteFromList = this.deleteFromList.bind(this);
     }
-    componentWillReceiveProps(newProps) {
-        this.setState({
-            name: newProps.name,
-            todos: newProps.todos,
-            completed: newProps.completed
-        });
-    }
     addToDo(input) {
-        var newItem = input.value;
-        var newArray = this.state.todos;
-        newArray.push(newItem);
-        this.setState({
-            todos: newArray
-        });
+        this.props.addToDo(input, this.props.name);
     }
     toggleToDo(checkbox) {
-        if(checkbox.name === 'todo') {
-            var newTodos = this.state.todos;
-            var indexToRemove = newTodos.indexOf(checkbox.value);
-            newTodos.splice(indexToRemove, 1);
-            var newCompleted = this.state.completed;
-            newCompleted.push(checkbox.value);
-            this.setState({
-                todos: newTodos,
-                completed: newCompleted
-            });
-        } else if(checkbox.name === 'completed') {
-            var newTodos = this.state.todos;
-            newTodos.push(checkbox.value);
-            var newCompleted = this.state.completed;
-            var indexToRemove = newCompleted.indexOf(checkbox.value);
-            newCompleted.splice(indexToRemove, 1);
-            this.setState({
-                todos: newTodos,
-                completed: newCompleted
-            });
-        } else {
-            console.log('unexpected checkbox name');
-        }
+        this.props.toggleToDo(checkbox, this.props.name);
     }
     deleteFromList(itemToDelete) {
-        if(itemToDelete.name === 'todo') {
-            var newTodos = this.state.todos;
-            var indexToRemove = newTodos.indexOf(itemToDelete.value);
-            newTodos.splice(indexToRemove, 1);
-            this.setState({
-                todos: newTodos
-            });
-        } else if(itemToDelete.name === 'completed') {
-            var newCompleted = this.state.completed;
-            var indexToRemove = newCompleted.indexOf(itemToDelete.value);
-            newCompleted.splice(indexToRemove, 1);
-            this.setState({
-                completed: newCompleted
-            });
-        } else {
-            console.log('unexpected checkbox name');
-        }
+        this.props.deleteFromList(itemToDelete, this.props.name);
     }
     render() {
         return(
             <div className="items-container">
-                <h2>{this.state.name}</h2>
+                <h2>{this.props.name}</h2>
                 <AddItem addToDo={this.addToDo} />
-                <ToDoContainer deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.state.todos} />
-                <CompletedContainer deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.state.completed} />
+                <ToDoContainer deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.props.todos} />
+                <CompletedContainer deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.props.completed} />
             </div>
         );
     }
@@ -183,19 +111,23 @@ class List extends React.Component {
 class ListMaker extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {
-            list: this.props.activeList
-        }
+        this.addToDo= this.addToDo.bind(this);
+        this.toggleToDo = this.toggleToDo.bind(this);
+        this.deleteFromList = this.deleteFromList.bind(this);
     }
-    componentWillReceiveProps(newProps) {
-        this.setState({
-            list: newProps.activeList
-        });
+    deleteFromList(itemToDelete, name) {
+        this.props.deleteFromList(itemToDelete, name);
+    }
+    toggleToDo(checkbox, name) {
+        this.props.toggleToDo(checkbox, name);
+    }
+    addToDo(input, name) {
+        this.props.addToDo(input, name);
     }
     render() {
         return(
             <div id="active-list">
-                <List name={this.state.list.name} todos={this.state.list.todos} completed={this.state.list.completed} />
+                <List deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} name={this.props.activeList.name} todos={this.props.activeList.todos} completed={this.props.activeList.completed} />
             </div>
         );
     }
@@ -249,14 +181,13 @@ class App extends React.Component {
                     completed: []
                 }
             ],
-            activeList: {
-                name: null,
-                todos: null,
-                completed: null
-            }   
+            activeList: null
         }
         this.changeActiveList = this.changeActiveList.bind(this);
         this.addList = this.addList.bind(this);
+        this.addToDo = this.addToDo.bind(this);
+        this.toggleToDo = this.toggleToDo.bind(this);
+        this.deleteFromList = this.deleteFromList.bind(this);
     }
     changeActiveList(e) {
         this.setState({
@@ -267,6 +198,70 @@ class App extends React.Component {
             }
         });
     }
+    deleteFromList(itemToDelete, name) {
+        var newLists = this.state.lists;
+        for (var i = 0; i < newLists.length; i++) {
+            if (newLists[i].name === name) {
+                if (itemToDelete.name === 'todo') {
+                    var indexToRemove = newLists[i].todos.indexOf(itemToDelete.value);
+                    newLists[i].todos.splice(indexToRemove, 1);
+                    this.setState({
+                        lists: newLists
+                    });
+                } else if (itemToDelete.name === 'completed') {
+                    var indexToRemove = newLists[i].completed.indexOf(itemToDelete.value);
+                    newLists[i].completed.splice(indexToRemove, 1);
+                    this.setState({
+                        lists: newLists
+                    });
+                } else {
+                    console.log('unexpected checkbox name');
+                }
+                break;
+            }
+        }
+    }
+    //new code
+    toggleToDo(checkbox, name) {
+        var newLists = this.state.lists;
+        for(var i=0; i <newLists.length; i++) {
+            if(newLists[i].name === name) {
+                if (checkbox.name === 'todo') {
+                    var indexToRemove = newLists[i].todos.indexOf(checkbox.value);
+                    newLists[i].todos.splice(indexToRemove, 1);
+                    newLists[i].completed.push(checkbox.value);
+                    this.setState({
+                        lists: newLists
+                    });
+                } else if (checkbox.name === 'completed') {
+                    newLists[i].todos.push(checkbox.value);
+                    var indexToRemove = newLists[i].completed.indexOf(checkbox.value);
+                    newLists[i].completed.splice(indexToRemove, 1);
+                    this.setState({
+                        lists: newLists
+                    });
+                } else {
+                    console.log('unexpected checkbox name');
+                }
+                break;
+            }
+        }
+    } //end of new code
+    //new code in order to save all changes in the app parent
+    addToDo(input, name) {
+        var newItem = input.value;
+        var newLists = this.state.lists;
+        for(var i=0; i < newLists.length; i++) {
+            if(newLists[i].name === name) {
+                newLists[i].todos.push(newItem);
+                break;
+            }
+        }
+        this.setState({
+            lists: newLists
+        });
+    }
+    //end of new code
     addList(input) {
         var newList = {};
         newList.name = input;
@@ -284,17 +279,14 @@ class App extends React.Component {
         });
     }
     render() {
-        const names = this.state.lists.map(
-            (list) => list.name
-        );
         console.log(this.state.lists);
         return(
             <div>
                 <Header></Header>
                 <div id="app-container">
                     <Lists addList={this.addList} changeActiveList={this.changeActiveList} lists={this.state.lists} />
-                    { this.state.activeList.name !== null &&
-                    <ListMaker activeList={this.state.activeList}/>
+                    { this.state.activeList !== null &&
+                    <ListMaker deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} activeList={this.state.activeList}/>
                     }
                     {/* <ToDoDetails/> */}
                 </div>

@@ -11,7 +11,7 @@ body {
     width: 100%;
 }
 #form {
-    width: 50%;
+    width: 70%;
 }
 .todo {
     width: 100%;
@@ -28,10 +28,6 @@ body {
 }
 .items-container {
     width: 100%;
-}
-.container {
-    list-style: none;
-    width: 50%;
 }
 #app-container {
     width: 100%;
@@ -77,4 +73,5 @@ body {
 ul.container {
     list-style: none;
     padding-left: 0;
+    width: 70%;
 }
