@@ -126,7 +126,10 @@ class ToDoContainer extends React.Component {
         });
     }
     resizeInputWidth(e) {
-        e.target.style.width = e.target.value.length + "ch";
+        const inputWidth = parseInt(window.getComputedStyle(e.target).getPropertyValue('width'));
+        if (inputWidth < 400) {
+            e.target.style.width = e.target.value.length + "ch";
+        }
     }
     render() {
         const todos = this.props.pushedArray.map(
