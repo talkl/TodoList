@@ -18,6 +18,9 @@ body {
 #form {
     width: 100%;
 }
+.edit-form {
+    display: inline;
+}
 .todo {
     width: 100%;
     border: 0.5px solid black;
@@ -48,18 +51,16 @@ body {
 .delete {
     display: inline-block;
     position: absolute;
-    right: 5px;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 0;
+    bottom: 0;
     cursor: pointer;
     text-decoration-line: none;
 }
 .star {
     display: inline-block;
     position: absolute;
-    right: 30px;
-    top: 50%;
-    transform: translateY(-50%);
+    right: 20px;
+    bottom: 0;
     cursor: pointer;
     text-decoration-line: none;
 }
@@ -113,7 +114,6 @@ ul.container {
 }
 .hidden {
     opacity: 0;
-    /* transition: opacity 1s; */
 }
 #panel {
     border: 1px solid snow;
@@ -124,6 +124,8 @@ ul.container {
     flex-direction: column;
     justify-content: start;
     align-items: center;
+    text-align: center;
+    word-break: break-all;
 }
 .is-active {
     display: flex;

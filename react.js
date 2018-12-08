@@ -12,7 +12,6 @@ class AddItem extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
-        e.stopPropagation();
         this.props.addToDo(this.input);
         this.input.value = ''; //clearing the input bar after submitting a to-do item
     }
@@ -79,11 +78,17 @@ class CompletedContainer extends React.Component {
 class ToDoContainer extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+            editActive: false
+        };
         this.handleChange = this.handleChange.bind(this);
         this.handleDelete = this.handleDelete.bind(this);
         this.handleStar = this.handleStar.bind(this);
         this.isStar = this.isStar.bind(this);
         this.openPanel = this.openPanel.bind(this);
+        this.editTodo = this.editTodo.bind(this);
+        this.revealInput = this.revealInput.bind(this);
+        this.resizeInputWidth = this.resizeInputWidth.bind(this);
     }
     handleChange(e) {
         e.preventDefault();
@@ -105,12 +110,36 @@ class ToDoContainer extends React.Component {
         e.stopPropagation();
         this.props.openPanel(e.target.textContent, e.target.classList, e.target.childNodes);
     }
+    editTodo(e) {
+        console.log('inside editTodo');
+        console.log('defaultValue is: ' + this.input.defaultValue);
+        e.preventDefault();
+        this.setState({
+            editActive: false
+        });
+        this.props.editTodo(this.input.value, this.input.defaultValue);
+    }
+    revealInput(e) {
+        e.stopPropagation();
+        this.setState({
+            editActive: e.target.textContent
+        });
+    }
+    resizeInputWidth(e) {
+        e.target.style.width = e.target.value.length + "ch";
+    }
     render() {
         const todos = this.props.pushedArray.map(
             (item, index) =>
             <li key={index} onClick={this.openPanel} className={`item todo ${this.props.activePanelTitle === item.title ? 'active' : ''}`}>
                 <input value={item.title} onClick={(e) => e.stopPropagation()} onChange={this.handleChange} type="checkbox" name="todo"/>
-                <span onClick={(e) => e.stopPropagation()}>{item.title}</span>
+                { (this.state.editActive === item.title &&
+                <form className="edit-form" onClick={(e) => e.stopPropagation()} onSubmit={this.editTodo}>
+                    <input onKeyPress={this.resizeInputWidth} ref={(input) => { this.input = input }} type="text" size={`${item.title.length}`} defaultValue={item.title} placeholder="enter to edit your to-do"></input>
+                </form>)
+                ||
+                <span onClick={this.revealInput}>{item.title}</span>
+                }
                 {
                 (this.isStar(this.props.stars, item.title) &&
                 <span onClick={this.handleStar} className="fa fa-star star"></span>
@@ -136,6 +165,7 @@ class List extends React.Component {
         this.deleteFromList = this.deleteFromList.bind(this);
         this.toggleStar = this.toggleStar.bind(this);
         this.openPanel = this.openPanel.bind(this);
+        this.editTodo = this.editTodo.bind(this);
     }
     addToDo(input) {
         this.props.addToDo(input, this.props.name);
@@ -152,12 +182,15 @@ class List extends React.Component {
     openPanel(itemText, parentClass, childNodes) {
         this.props.openPanel(itemText, parentClass, childNodes, this.props.name);
     }
+    editTodo(inputValue, defaultValue) {
+        this.props.editTodo(inputValue, defaultValue, this.props.name);
+    }
     render() {
         return(
             <div className="items-container">
                 <h2 id="list-name">{this.props.name}</h2>
                 <AddItem addToDo={this.addToDo} />
-                <ToDoContainer activePanelTitle={this.props.activePanelTitle} openPanel={this.openPanel} toggleStar={this.toggleStar} stars={this.props.stars} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.props.todos} />
+                <ToDoContainer editTodo={this.editTodo} activePanelTitle={this.props.activePanelTitle} openPanel={this.openPanel} toggleStar={this.toggleStar} stars={this.props.stars} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.props.todos} />
                 <CompletedContainer activePanelTitle={this.props.activePanelTitle} openPanel={this.openPanel} toggleStar={this.toggleStar} stars={this.props.stars} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.props.completed} />
             </div>
         );
@@ -175,6 +208,7 @@ class ListMaker extends React.Component {
         this.toggleStar = this.toggleStar.bind(this);
         this.openPanel = this.openPanel.bind(this);
         this.closePanel = this.closePanel.bind(this);
+        this.editTodo = this.editTodo.bind(this);
     }
     deleteFromList(itemToDelete, name, parentElement) {
         this.props.deleteFromList(itemToDelete, name, parentElement);
@@ -203,11 +237,14 @@ class ListMaker extends React.Component {
     closePanel() {
         this.props.closePanel();
     }
+    editTodo(inputValue, defaultValue, listName) {
+        this.props.editTodo(inputValue, defaultValue, listName);
+    }
     render() {
         return(
             <div onClick={this.closePanel} onMouseLeave={this.exitHover} onMouseEnter={this.enterHover} id="active-list">
                 <span onClick={this.deleteList} ref={(trash) => {this.trash = trash}} className="fa fa-trash hidden trash"></span>
-                <List activePanelTitle={this.props.activePanelTitle} openPanel={this.openPanel} toggleStar={this.toggleStar} stars={this.props.activeList.stars} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} name={this.props.activeList.name} todos={this.props.activeList.todos} completed={this.props.activeList.completed} />
+                <List editTodo={this.editTodo} activePanelTitle={this.props.activePanelTitle} openPanel={this.openPanel} toggleStar={this.toggleStar} stars={this.props.activeList.stars} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} name={this.props.activeList.name} todos={this.props.activeList.todos} completed={this.props.activeList.completed} />
             </div>
         );
     }
@@ -275,6 +312,7 @@ class App extends React.Component {
         this.toggleStar = this.toggleStar.bind(this);
         this.openPanel = this.openPanel.bind(this);
         this.closePanel = this.closePanel.bind(this);
+        this.editTodo = this.editTodo.bind(this);
     }
     hydrateStateWithLocalStorage() {
         if(localStorage.getItem('lists')) {
@@ -591,6 +629,30 @@ class App extends React.Component {
             }
         })
     }
+    editTodo(inputValue, defaultValue, listName) {
+        console.log(inputValue);
+        console.log(listName);
+        var newLists = this.state.lists;
+        for (var i = 0; i < newLists.length; i++) {
+            if (newLists[i].name === listName) {
+                console.log('inside newLists[i].name');
+                console.log(newLists[i].todos.length);
+                console.log(newLists[i].todos[0].title);
+                for(var k=0; k < newLists[i].todos.length; k++) {
+                    if(newLists[i].todos[k].title === defaultValue) {
+                        console.log('inside title===inputvalue');
+                        console.log(newLists[i].todos[k].title);
+                        newLists[i].todos[k].title = inputValue;
+                        break;    
+                    }
+                }
+                break;
+            }
+        }
+        this.setState({
+            lists: newLists
+        });
+    }
     render() {
         console.log(this.state.lists);
         return(
@@ -599,7 +661,7 @@ class App extends React.Component {
                 <div id="app-container">
                     <Lists closePanel={this.closePanel} addList={this.addList} changeActiveList={this.changeActiveList} lists={this.state.lists} />
                     { this.state.activeList !== null &&
-                    <ListMaker activePanelTitle={this.state.activePanel.title} closePanel={this.closePanel} openPanel={this.openPanel} toggleStar={this.toggleStar} deleteList={this.deleteList} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} activeList={this.state.activeList}/>
+                    <ListMaker editTodo={this.editTodo} activePanelTitle={this.state.activePanel.title} closePanel={this.closePanel} openPanel={this.openPanel} toggleStar={this.toggleStar} deleteList={this.deleteList} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} activeList={this.state.activeList}/>
                     }
                     <Panel class={this.state.activePanel.isActive ? 'is-active' : 'not-active'} listName={this.state.activePanel.listName} title={this.state.activePanel.title} description={this.state.activePanel.description} due_date={this.state.activePanel.due_date} />
                 </div>
@@ -614,7 +676,7 @@ class Panel extends React.Component {
     render() {
         return(
             <div id="panel" className={`${this.props.class}`}>
-                <h4>{this.props.title}</h4>
+                <p>{this.props.title}</p>
                 <p>description: {this.props.description}</p>
                 <p>due date: {this.props.due_date}</p>
             </div>
