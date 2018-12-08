@@ -12,12 +12,13 @@ class AddItem extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
+        e.stopPropagation();
         this.props.addToDo(this.input);
         this.input.value = ''; //clearing the input bar after submitting a to-do item
     }
     render() {
         return (
-            <form id="form" onSubmit={this.handleSubmit}>
+            <form id="form" onClick={(e) => e.stopPropagation()} onSubmit={this.handleSubmit}>
                 <input className="input" ref={(input) => { this.input = input }} type="text" placeholder="add to-do"></input>
             </form>
         );
@@ -30,38 +31,43 @@ class CompletedContainer extends React.Component {
         this.handleDelete = this.handleDelete.bind(this);
         this.handleStar = this.handleStar.bind(this);
         this.isStar = this.isStar.bind(this);
+        this.openPanel = this.openPanel.bind(this);
     }
     handleChange(e) {
         e.preventDefault();
         this.props.toggleToDo(e.target);
     }
     handleDelete(e) {
+        e.stopPropagation();
         this.props.deleteFromList(e.target.parentElement.textContent, e.target.parentElement);
     }
     handleStar(e) {
         //toggle star whether is inside to-do or completed
-        console.log(e.target.parentElement.textContent);
-        this.props.toggleStar(e.target.parentElement.textContent, e.target.classList);
+        e.stopPropagation();
+        this.props.toggleStar(e.target.parentElement.textContent, e.target.classList, e.target.parentElement.classList);
     }
     isStar(starsArray, itemName) {
         return isStar(starsArray, itemName);
     }
+    openPanel(e) {
+        e.stopPropagation();
+        this.props.openPanel(e.target.textContent, e.target.classList, e.target.childNodes);
+    }
     render() {
         const completed = this.props.pushedArray.map(
             (item, index) =>
-            <li key={index} className="item completed">
-                <input value={item} onChange={this.handleChange} type="checkbox" name="completed" checked />
-                {item}
-                {
-                (this.isStar(this.props.stars, item) &&
-                <span onClick={this.handleStar} className="fa fa-star star"></span>
-                )
-                ||
-                <span onClick={this.handleStar} className="fa fa-star-o star"></span>
-                }
-                <span onClick={this.handleDelete} className="fa fa-trash delete"></span>
-                {/* &nbsp;&#10007;&nbsp; */}
-            </li>
+                <li key={index} onClick={this.openPanel} className={`item completed ${this.props.activePanelTitle === item.title ? 'active' : ''}`}>
+                    <input value={item.title} onClick={(e) => e.stopPropagation() } onChange={this.handleChange} type="checkbox" name="completed" checked />
+                    <span onClick={(e) => e.stopPropagation()}>{item.title}</span>
+                    {
+                    (this.isStar(this.props.stars, item.title) &&
+                    <span onClick={this.handleStar} className="fa fa-star star"></span>
+                    )
+                    ||
+                    <span onClick={this.handleStar} className="fa fa-star-o star"></span>
+                    }
+                    <span onClick={this.handleDelete} className="fa fa-trash delete"></span>
+                </li>
         )
         return (
             <ul className="container">
@@ -77,36 +83,42 @@ class ToDoContainer extends React.Component {
         this.handleDelete = this.handleDelete.bind(this);
         this.handleStar = this.handleStar.bind(this);
         this.isStar = this.isStar.bind(this);
+        this.openPanel = this.openPanel.bind(this);
     }
     handleChange(e) {
         e.preventDefault();
         this.props.toggleToDo(e.target);
     }
     handleDelete(e) {
+        e.stopPropagation();
         this.props.deleteFromList(e.target.parentElement.textContent, e.target.parentElement);
     }
     handleStar(e) {
+        e.stopPropagation();
         //toggle star whether is inside to-do or completed
         this.props.toggleStar(e.target.parentElement.textContent, e.target.classList, e.target.parentElement.classList);
     }
     isStar(starsArray, itemName) {
         return isStar(starsArray, itemName);
     }
+    openPanel(e) {
+        e.stopPropagation();
+        this.props.openPanel(e.target.textContent, e.target.classList, e.target.childNodes);
+    }
     render() {
         const todos = this.props.pushedArray.map(
             (item, index) =>
-            <li key={index} className="item todo">
-                <input value={item} onChange={this.handleChange} type="checkbox" name="todo"/>
-                {item}
+            <li key={index} onClick={this.openPanel} className={`item todo ${this.props.activePanelTitle === item.title ? 'active' : ''}`}>
+                <input value={item.title} onClick={(e) => e.stopPropagation()} onChange={this.handleChange} type="checkbox" name="todo"/>
+                <span onClick={(e) => e.stopPropagation()}>{item.title}</span>
                 {
-                (this.isStar(this.props.stars, item) &&
+                (this.isStar(this.props.stars, item.title) &&
                 <span onClick={this.handleStar} className="fa fa-star star"></span>
                 )
                 ||
                 <span onClick={this.handleStar} className="fa fa-star-o star"></span>
                 }
                 <span onClick={this.handleDelete} className="fa fa-trash delete"></span>
-                {/* &nbsp;&#10007;&nbsp; */}
             </li>
         )
         return(
@@ -123,6 +135,7 @@ class List extends React.Component {
         this.toggleToDo = this.toggleToDo.bind(this);
         this.deleteFromList = this.deleteFromList.bind(this);
         this.toggleStar = this.toggleStar.bind(this);
+        this.openPanel = this.openPanel.bind(this);
     }
     addToDo(input) {
         this.props.addToDo(input, this.props.name);
@@ -136,13 +149,16 @@ class List extends React.Component {
     toggleStar(itemText, starClassList, parentClassList) {
         this.props.toggleStar(itemText, this.props.name, starClassList, parentClassList);
     }
+    openPanel(itemText, parentClass, childNodes) {
+        this.props.openPanel(itemText, parentClass, childNodes, this.props.name);
+    }
     render() {
         return(
             <div className="items-container">
                 <h2 id="list-name">{this.props.name}</h2>
                 <AddItem addToDo={this.addToDo} />
-                <ToDoContainer toggleStar={this.toggleStar} stars={this.props.stars} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.props.todos} />
-                <CompletedContainer toggleStar={this.toggleStar} stars={this.props.stars} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.props.completed} />
+                <ToDoContainer activePanelTitle={this.props.activePanelTitle} openPanel={this.openPanel} toggleStar={this.toggleStar} stars={this.props.stars} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.props.todos} />
+                <CompletedContainer activePanelTitle={this.props.activePanelTitle} openPanel={this.openPanel} toggleStar={this.toggleStar} stars={this.props.stars} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.props.completed} />
             </div>
         );
     }
@@ -157,6 +173,8 @@ class ListMaker extends React.Component {
         this.enterHover = this.enterHover.bind(this);
         this.deleteList = this.deleteList.bind(this);
         this.toggleStar = this.toggleStar.bind(this);
+        this.openPanel = this.openPanel.bind(this);
+        this.closePanel = this.closePanel.bind(this);
     }
     deleteFromList(itemToDelete, name, parentElement) {
         this.props.deleteFromList(itemToDelete, name, parentElement);
@@ -179,11 +197,17 @@ class ListMaker extends React.Component {
     toggleStar(itemText, listName, starClassList, parentClassList) {
         this.props.toggleStar(itemText, listName, starClassList, parentClassList);
     }
+    openPanel(itemText, parentClass, childNodes, listName) {
+        this.props.openPanel(itemText, parentClass, childNodes, listName);
+    }
+    closePanel() {
+        this.props.closePanel();
+    }
     render() {
         return(
-            <div onMouseLeave={this.exitHover} onMouseEnter={this.enterHover} id="active-list">
+            <div onClick={this.closePanel} onMouseLeave={this.exitHover} onMouseEnter={this.enterHover} id="active-list">
                 <span onClick={this.deleteList} ref={(trash) => {this.trash = trash}} className="fa fa-trash hidden trash"></span>
-                <List toggleStar={this.toggleStar} stars={this.props.activeList.stars} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} name={this.props.activeList.name} todos={this.props.activeList.todos} completed={this.props.activeList.completed} />
+                <List activePanelTitle={this.props.activePanelTitle} openPanel={this.openPanel} toggleStar={this.toggleStar} stars={this.props.activeList.stars} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} name={this.props.activeList.name} todos={this.props.activeList.todos} completed={this.props.activeList.completed} />
             </div>
         );
     }
@@ -193,6 +217,7 @@ class Lists extends React.Component {
         super(props);
         this.handleClick = this.handleClick.bind(this);
         this.addList = this.addList.bind(this);
+        this.closePanel = this.closePanel.bind(this);
     }
     handleClick(e) {
         var parentWrapper = e.target.parentElement;
@@ -208,6 +233,9 @@ class Lists extends React.Component {
     addList() {
         this.props.addList();
     }
+    closePanel() {
+        this.props.closePanel();
+    }
     render() {
         const listsButtons = this.props.lists.map(
             (list, index) => <button className="list-button" onClick={this.handleClick} key={index} value={list.name}>
@@ -215,7 +243,7 @@ class Lists extends React.Component {
             </button>
         )
         return(
-            <div id="lists-container">
+            <div onClick={this.closePanel} id="lists-container">
                 {listsButtons}
                 <button className="list-button" id="add-list" onClick={this.addList}>+</button>
             </div>
@@ -227,7 +255,14 @@ class App extends React.Component {
         super(props);
         this.state = {
             lists: [],
-            activeList: null
+            activeList: null,
+            activePanel: {
+                isActive: false,
+                listName: null,
+                title: null,
+                description: null,
+                due_date: null
+            }
         }
         this.changeActiveList = this.changeActiveList.bind(this);
         this.addList = this.addList.bind(this);
@@ -238,6 +273,8 @@ class App extends React.Component {
         this.hydrateStateWithLocalStorage = this.hydrateStateWithLocalStorage.bind(this);
         this.deleteList = this.deleteList.bind(this);
         this.toggleStar = this.toggleStar.bind(this);
+        this.openPanel = this.openPanel.bind(this);
+        this.closePanel = this.closePanel.bind(this);
     }
     hydrateStateWithLocalStorage() {
         if(localStorage.getItem('lists')) {
@@ -251,14 +288,52 @@ class App extends React.Component {
                     {
                         name: 'DeLorean sports car',
                         stars: ['natural gas'],
-                        todos: ['Quantomphysics', 'natural gas', 'flying?'],
-                        completed: ['time travel', '100kmh']
+                        todos: [
+                            {
+                                title: 'Quantomphysics',
+                                due_date: '27/10/1999',
+                                description: 'I need to work on the shredinger Cat'
+                            },
+                            {
+                                title: 'natural gas',
+                                due_date: '1/1/2000',
+                                description: '2000 bug'
+                            },
+                            {
+                                title: 'flying?',
+                                due_date: '13/05/2005',
+                                description: 'finalizing the steps'
+                            }
+                            ],
+                        completed: [
+                            {
+                                title: 'time travel',
+                                due_date: '6/5/2008',
+                                description: 'traveling back in time takes a lot of time'
+                            },
+                            {
+                                title: '100kmh',
+                                due_date: '31/12/1999',
+                                description: 'my description'
+                            }
+                        ]
                     },
                     {
                         name: 'Marty',
                         stars: [],
                         todos: [],
-                        completed: ['enticing', 'time travel']
+                        completed: [
+                            {
+                                title: 'girlfriend',
+                                due_date: '8/12/2018',
+                                description: 'finding Marty a girlfriend'
+                            },
+                            {
+                                title: 'visiting his parents',
+                                due_date: '3/12/2005',
+                                description: 'suspicious'
+                            }
+                        ]
                     }
                 ],
             });
@@ -308,11 +383,19 @@ class App extends React.Component {
                     }
                 }
                 if (parentElement.classList.contains('todo')) {
-                    var indexToRemove = newLists[i].todos.indexOf(itemToDelete);
-                    newLists[i].todos.splice(indexToRemove, 1);
+                    for(let k=0; k < newLists[i].todos.length; k++) {
+                        if (newLists[i].todos[k].title === itemToDelete) {
+                            newLists[i].todos.splice(k, 1);
+                            break;
+                        } 
+                    }
                 } else if (parentElement.classList.contains('completed')) {
-                    var indexToRemove = newLists[i].completed.indexOf(itemToDelete);
-                    newLists[i].completed.splice(indexToRemove, 1);
+                    for (let k = 0; k < newLists[i].completed.length; k++) {
+                        if (newLists[i].completed[k].title === itemToDelete) {
+                            newLists[i].completed.splice(k, 1);
+                            break;
+                        }
+                    }
                 } else {
                     console.log('unexpected classList name of <li/> item');
                 }
@@ -322,6 +405,9 @@ class App extends React.Component {
                 break;
             }
         }
+        if(itemToDelete === this.state.activePanel.title) {
+            this.closePanel();
+        }
     }
     //new code
     toggleToDo(checkbox, name) {
@@ -329,16 +415,26 @@ class App extends React.Component {
         for(var i=0; i <newLists.length; i++) {
             if(newLists[i].name === name) {
                 if (checkbox.name === 'todo') {
-                    var indexToRemove = newLists[i].todos.indexOf(checkbox.value);
-                    newLists[i].todos.splice(indexToRemove, 1);
-                    newLists[i].completed.push(checkbox.value);
+                    for (let k = 0; k < newLists[i].todos.length; k++) {
+                        if (newLists[i].todos[k].title === checkbox.value) {
+                            let newCompleted = newLists[i].todos[k];
+                            newLists[i].completed.push(newCompleted)
+                            newLists[i].todos.splice(k, 1);
+                            break;
+                        }
+                    }
                     this.setState({
                         lists: newLists
                     });
                 } else if (checkbox.name === 'completed') {
-                    newLists[i].todos.push(checkbox.value);
-                    var indexToRemove = newLists[i].completed.indexOf(checkbox.value);
-                    newLists[i].completed.splice(indexToRemove, 1);
+                    for (let k = 0; k < newLists[i].completed.length; k++) {
+                        if (newLists[i].completed[k].title === checkbox.value) {
+                            let newTodo = newLists[i].completed[k];
+                            newLists[i].todos.push(newTodo)
+                            newLists[i].completed.splice(k, 1);
+                            break;
+                        }
+                    }
                     this.setState({
                         lists: newLists
                     });
@@ -355,7 +451,11 @@ class App extends React.Component {
         var newLists = this.state.lists;
         for(var i=0; i < newLists.length; i++) {
             if(newLists[i].name === name) {
-                newLists[i].todos.push(newItem);
+                var newTodo = {};
+                newTodo.title = newItem;
+                newTodo.due_date = null;
+                newTodo.description = null;
+                newLists[i].todos.push(newTodo);
                 break;
             }
         }
@@ -410,7 +510,6 @@ class App extends React.Component {
         }
     }
     toggleStar(itemText, listName, starClassList, parentClassList) {
-        var newItem = itemText;
         var newLists = this.state.lists;
         for (var i = 0; i < newLists.length; i++) {
             if (newLists[i].name === listName) {
@@ -419,11 +518,17 @@ class App extends React.Component {
                 }
                 if(starClassList.contains('fa-star-o')) {
                     //only if toggle happened in to-do
-                    if(parentClassList && parentClassList.contains('todo')) {
-                        newLists[i].todos.splice(newLists[i].todos.indexOf(itemText),1);
-                        newLists[i].todos.unshift(itemText);
+                    if(parentClassList.contains('todo')) {
+                        for (let k = 0; k < newLists[i].todos.length; k++) {
+                            if (newLists[i].todos[k].title === itemText) {
+                                let currentTodo = newLists[i].todos[k];
+                                newLists[i].todos.splice(k, 1);
+                                newLists[i].todos.unshift(currentTodo);
+                                break;
+                            }
+                        }
                     }
-                    newLists[i].stars.push(newItem);
+                    newLists[i].stars.push(itemText);
                 } else if (starClassList.contains('fa-star')) {
                     newLists[i].stars.splice(newLists[i].stars.indexOf(itemText), 1);
                 } else {
@@ -436,18 +541,82 @@ class App extends React.Component {
             lists: newLists
         });
     }
+    openPanel(itemText, parentClass, childNodes, listName) {
+        var itemDescription = '';
+        var dueDate = '';
+        var currentLists = this.state.lists;
+        for(var i=0; i < currentLists.length; i++) {
+            if(currentLists[i].name === listName) {
+                if(parentClass.contains('todo')) {
+                    for (var k = 0; k < currentLists[i].todos.length; k++) {
+                        if (currentLists[i].todos[k].title === itemText) {
+                            itemDescription = currentLists[i].todos[k].description;
+                            dueDate = currentLists[i].todos[k].due_date;
+                            break;
+                        }
+                    }
+                } else if (parentClass.contains('completed')) {
+                    for (var k = 0; k < currentLists[i].completed.length; k++) {
+                        if (currentLists[i].completed[k].title === itemText) {
+                            itemDescription = currentLists[i].completed[k].description;
+                            dueDate = currentLists[i].completed[k].due_date;
+                            break;
+                        }
+                    }
+                }
+                else {
+                    console.log("parentClass doesn't contains completed or todo");
+                }
+                break;
+            }
+        }
+        this.setState({
+            activePanel: {
+                isActive: true,
+                listName: listName,
+                title: itemText,
+                description: itemDescription,
+                due_date: dueDate
+            }
+        });
+    }
+    closePanel() {
+        this.setState({
+            activePanel: {
+                isActive: false,
+                listName: null,
+                title: null,
+                description: null,
+                due_date: null
+            }
+        })
+    }
     render() {
         console.log(this.state.lists);
         return(
             <div>
                 <Header></Header>
                 <div id="app-container">
-                    <Lists addList={this.addList} changeActiveList={this.changeActiveList} lists={this.state.lists} />
+                    <Lists closePanel={this.closePanel} addList={this.addList} changeActiveList={this.changeActiveList} lists={this.state.lists} />
                     { this.state.activeList !== null &&
-                    <ListMaker toggleStar={this.toggleStar} deleteList={this.deleteList} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} activeList={this.state.activeList}/>
+                    <ListMaker activePanelTitle={this.state.activePanel.title} closePanel={this.closePanel} openPanel={this.openPanel} toggleStar={this.toggleStar} deleteList={this.deleteList} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} activeList={this.state.activeList}/>
                     }
-                    {/* <ToDoDetails/> */}
+                    <Panel class={this.state.activePanel.isActive ? 'is-active' : 'not-active'} listName={this.state.activePanel.listName} title={this.state.activePanel.title} description={this.state.activePanel.description} due_date={this.state.activePanel.due_date} />
                 </div>
+            </div>
+        );
+    }
+}
+class Panel extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+    render() {
+        return(
+            <div id="panel" className={`${this.props.class}`}>
+                <h4>{this.props.title}</h4>
+                <p>description: {this.props.description}</p>
+                <p>due date: {this.props.due_date}</p>
             </div>
         );
     }
