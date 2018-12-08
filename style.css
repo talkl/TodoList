@@ -136,3 +136,6 @@ ul.container {
     opacity: 0;
     transition: opacity 2s;
 }
+.lined-title {
+    text-decoration: underline;
+}

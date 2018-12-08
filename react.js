@@ -118,8 +118,6 @@ class ToDoContainer extends React.Component {
         this.props.openPanel(e.target.textContent, e.target.classList, e.target.childNodes);
     }
     editTodo(e) {
-        console.log('inside editTodo');
-        console.log('defaultValue is: ' + this.input.defaultValue);
         e.preventDefault();
         this.setState({
             editActive: false
@@ -323,6 +321,8 @@ class App extends React.Component {
         this.openPanel = this.openPanel.bind(this);
         this.closePanel = this.closePanel.bind(this);
         this.editTodo = this.editTodo.bind(this);
+        this.editDescription = this.editDescription.bind(this);
+        this.editDueDate = this.editDueDate.bind(this);
     }
     hydrateStateWithLocalStorage() {
         if(localStorage.getItem('lists')) {
@@ -667,6 +667,12 @@ class App extends React.Component {
             lists: newLists
         });
     }
+    editDescription() {
+        return;
+    }
+    editDueDate(date, title, listName) {
+        return;
+    }
     render() {
         console.log(this.state.lists);
         return(
@@ -677,7 +683,7 @@ class App extends React.Component {
                     { this.state.activeList !== null &&
                     <ListMaker editTodo={this.editTodo} activePanelTitle={this.state.activePanel.title} closePanel={this.closePanel} openPanel={this.openPanel} toggleStar={this.toggleStar} deleteList={this.deleteList} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} activeList={this.state.activeList}/>
                     }
-                    <Panel class={this.state.activePanel.isActive ? 'is-active' : 'not-active'} listName={this.state.activePanel.listName} title={this.state.activePanel.title} description={this.state.activePanel.description} due_date={this.state.activePanel.due_date} />
+                    <Panel editDescription={this.editDescription} editDueDate={this.editDueDate} class={this.state.activePanel.isActive ? 'is-active' : 'not-active'} listName={this.state.activePanel.listName} title={this.state.activePanel.title} description={this.state.activePanel.description} due_date={this.state.activePanel.due_date} />
                 </div>
             </div>
         );
@@ -686,13 +692,59 @@ class App extends React.Component {
 class Panel extends React.Component {
     constructor(props) {
         super(props);
+        this.state = {
+            editActive: false
+        };
+        this.editDescription = this.editDescription.bind(this);
+        this.editDueDate = this.editDueDate.bind(this);
+        this.revealInput = this.revealInput.bind(this);
+    }
+    editDescription(e) {
+        this.props.editDescription(e.target.textContent);
+    }
+    editDueDate(e) {
+        e.preventDefault();
+        this.setState({
+            editActive: false
+        });
+        this.props.editDueDate(this.date.value, this.props.title, this.props.listName);
+    }
+    revealInput(e) {
+        console.log('inside reaveal input');
+        console.log(e.target.textContent);
+        if(this.props.due_date === null || this.props.due_date === '' || this.props.due_date === undefined) {
+            console.log('insideempty');
+            this.setState({
+                editActive: null
+            });    
+        } else {
+            this.setState({
+                editActive: e.target.textContent
+            });
+        }
+    }
+    componentDidUpdate() {
+        $(function () {
+            $("#datepicker-panel").datepicker();
+        });
     }
     render() {
+        console.log('inside rendering of panel');
+        console.log(this.props.due_date);
+        console.log(this.state.editActive);
         return(
             <div id="panel" className={`${this.props.class}`}>
                 <p>{this.props.title}</p>
-                <p>description: {this.props.description}</p>
-                <p>due date: {this.props.due_date}</p>
+                <p className="lined-title">description</p>
+                <span onClick={this.editDescription}>{this.props.description}</span>
+                <p onClick={this.revealInput} className="lined-title">due date</p>
+                {(this.state.editActive === this.props.due_date &&
+                <form className="edit-form" onSubmit={this.editDueDate}>
+                    <input ref={(date) => { this.date = date }} type="text" id="datepicker-panel" defaultValue={this.props.due_date} placeholder="enter date" />
+                </form>)
+                ||
+                <span onClick={this.revealInput}>{this.props.due_date}</span>
+                }
             </div>
         );
     }
