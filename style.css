@@ -49,6 +49,17 @@ body {
     display: inline-block;
     position: absolute;
     right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    text-decoration-line: none;
+}
+.star {
+    display: inline-block;
+    position: absolute;
+    right: 30px;
+    top: 50%;
+    transform: translateY(-50%);
     cursor: pointer;
     text-decoration-line: none;
 }
@@ -57,6 +68,8 @@ body {
     line-height: 100%;
 }
 .list-button {
+    font-family: 'Indie Flower', cursive;
+    line-height: 100%;
     display: block;
     height: 50px;
     width: 100%;
@@ -64,7 +77,7 @@ body {
     margin: 5px;
 }
 #lists-container {
-    width: 25%;
+    width: 125px;
     height: 100%;
     display: flex;
     flex-direction: column;

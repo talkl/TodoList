@@ -20,3 +20,20 @@ function listExist(userInput, lists) {
     }
     return false;
 }
+function returnStars(listArray, listName) {
+    for (var i = 0; i < listArray.length; i++) {
+        if (listArray[i].name === listName) {
+            return listArray[i].stars;
+        }
+    }
+}
+function isStar(starsArray, itemName) {
+    if(starsArray !== undefined) {
+        for(var i=0; i <starsArray.length; i++) {
+            if(starsArray[i] === itemName) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
