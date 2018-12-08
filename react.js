@@ -100,7 +100,7 @@ class List extends React.Component {
     render() {
         return(
             <div className="items-container">
-                <h2>{this.props.name}</h2>
+                <h2 id="list-name">{this.props.name}</h2>
                 <AddItem addToDo={this.addToDo} />
                 <ToDoContainer deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.props.todos} />
                 <CompletedContainer deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} pushedArray={this.props.completed} />
@@ -114,6 +114,9 @@ class ListMaker extends React.Component {
         this.addToDo= this.addToDo.bind(this);
         this.toggleToDo = this.toggleToDo.bind(this);
         this.deleteFromList = this.deleteFromList.bind(this);
+        this.exitHover = this.exitHover.bind(this);
+        this.enterHover = this.enterHover.bind(this);
+        this.deleteList = this.deleteList.bind(this);
     }
     deleteFromList(itemToDelete, name) {
         this.props.deleteFromList(itemToDelete, name);
@@ -124,9 +127,19 @@ class ListMaker extends React.Component {
     addToDo(input, name) {
         this.props.addToDo(input, name);
     }
+    enterHover() {
+        this.trash.classList.remove('hidden');
+    }
+    exitHover() {
+        this.trash.classList.add('hidden');
+    }
+    deleteList() {
+        this.props.deleteList(this.props.activeList.name);
+    }
     render() {
         return(
-            <div id="active-list">
+            <div onMouseLeave={this.exitHover} onMouseEnter={this.enterHover} id="active-list">
+                <span onClick={this.deleteList} ref={(trash) => {this.trash = trash}} className="fa fa-trash hidden trash"></span>
                 <List deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} name={this.props.activeList.name} todos={this.props.activeList.todos} completed={this.props.activeList.completed} />
             </div>
         );
@@ -139,11 +152,18 @@ class Lists extends React.Component {
         this.addList = this.addList.bind(this);
     }
     handleClick(e) {
+        var parentWrapper = e.target.parentElement;
+        for (var i = 0; i < parentWrapper.childNodes.length; i++) {
+            if (parentWrapper.childNodes[i].classList.contains('active')) {
+                parentWrapper.childNodes[i].classList.remove('active');
+                break;
+            }
+        }
+        e.target.classList.add('active');
         this.props.changeActiveList(e);
     }
     addList() {
-        var userInput = prompt("enter list's name");
-        this.props.addList(userInput);
+        this.props.addList();
     }
     render() {
         const listsButtons = this.props.lists.map(
@@ -171,6 +191,7 @@ class App extends React.Component {
         this.deleteFromList = this.deleteFromList.bind(this);
         this.saveStateToLocalStorage = this.saveStateToLocalStorage.bind(this);
         this.hydrateStateWithLocalStorage = this.hydrateStateWithLocalStorage.bind(this);
+        this.deleteList = this.deleteList.bind(this);
     }
     hydrateStateWithLocalStorage() {
         if(localStorage.getItem('lists')) {
@@ -291,21 +312,48 @@ class App extends React.Component {
         });
     }
     //end of new code
-    addList(input) {
-        var newList = {};
-        newList.name = input;
-        newList.todos = [];
-        newList.completed = [];
-        var currentLists = this.state.lists;
-        currentLists.push(newList);
-        this.setState({
-            lists: currentLists,
-            activeList: {
-                name: newList.name,
-                todos: newList.todos,
-                completed: newList.completed
+    addList() {
+        var userInput = prompt("please enter list's name");
+        while(userInput === '' || listExist(userInput, this.state.lists)) {
+            userInput = prompt("please enter list's name (1 char at least, only names that do not exist)");
+        } 
+        if(userInput) { //if user doesn't cancel
+            var parentWrapper = document.querySelector('#lists-container');
+            for (var i = 0; i < parentWrapper.childNodes.length; i++) {
+                if (parentWrapper.childNodes[i].classList.contains('active')) {
+                    parentWrapper.childNodes[i].classList.remove('active');
+                    break;
+                }
             }
-        });
+            var newList = {};
+            newList.name = userInput;
+            newList.todos = [];
+            newList.completed = [];
+            var currentLists = this.state.lists;
+            currentLists.push(newList);
+            this.setState({
+                lists: currentLists,
+                activeList: {
+                    name: newList.name,
+                    todos: newList.todos,
+                    completed: newList.completed
+                }
+            });
+        }
+    }
+    deleteList(nameOfListToDelete) {
+        var currentLists = this.state.lists;
+        for (var i = 0; i < currentLists.length; i++) {
+            if (currentLists[i].name === nameOfListToDelete) {
+                var indexToDelete = i;
+                currentLists.splice(indexToDelete, 1);
+                this.setState({
+                    lists: currentLists,
+                    activeList: null
+                });
+                break;
+            }
+        }
     }
     render() {
         console.log(this.state.lists);
@@ -315,7 +363,7 @@ class App extends React.Component {
                 <div id="app-container">
                     <Lists addList={this.addList} changeActiveList={this.changeActiveList} lists={this.state.lists} />
                     { this.state.activeList !== null &&
-                    <ListMaker deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} activeList={this.state.activeList}/>
+                    <ListMaker deleteList={this.deleteList} deleteFromList={this.deleteFromList} toggleToDo={this.toggleToDo} addToDo={this.addToDo} activeList={this.state.activeList}/>
                     }
                     {/* <ToDoDetails/> */}
                 </div>

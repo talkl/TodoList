@@ -6,12 +6,17 @@ body {
     margin: 0;
     padding: 0;
     color: snow;
+    font-family: 'Indie Flower', cursive;
+}
+#header {
+    text-align: center;
+    line-height: 100%;
 }
 .input {
     width: 100%;
 }
 #form {
-    width: 70%;
+    width: 100%;
 }
 .todo {
     width: 100%;
@@ -47,6 +52,10 @@ body {
     cursor: pointer;
     text-decoration-line: none;
 }
+#list-name {
+    text-align: center;
+    line-height: 100%;
+}
 .list-button {
     display: block;
     height: 50px;
@@ -64,7 +73,9 @@ body {
 }
 #active-list {
     width: 100%;
-    height: 100%;   
+    height: 100%;
+    margin-left: 50px;
+    margin-right: 50px;
 }
 #add-list {
     margin-top: 15px;
@@ -73,5 +84,20 @@ body {
 ul.container {
     list-style: none;
     padding-left: 0;
-    width: 70%;
+    width: 100%;
+}
+.active {
+    background-color: #2daebf;
+}
+.trash {
+    font-size: 1.5em;
+    cursor: pointer;
+    position: absolute;
+    top: 10%;
+    right: 10%;
+    transition: opacity 1s;
+}
+.hidden {
+    opacity: 0;
+    /* transition: opacity 1s; */
 }

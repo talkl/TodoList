@@ -12,3 +12,11 @@ function returnCompleted(listArray, listName) {
         }
     }
 }
+function listExist(userInput, lists) {
+    for(var i=0; i < lists.length; i++) {
+        if(lists[i].name === userInput) {
+            return true;
+        }
+    }
+    return false;
+}
