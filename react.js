@@ -12,14 +12,21 @@ class AddItem extends React.Component {
     }
     handleSubmit(e) {
         e.preventDefault();
-        this.props.addToDo(this.input);
+        this.props.addToDo(this.input, this.date.value);
         this.input.value = ''; //clearing the input bar after submitting a to-do item
     }
     render() {
+        $(function () {
+            $(".datepicker").datepicker();
+        });
         return (
-            <form id="form" onClick={(e) => e.stopPropagation()} onSubmit={this.handleSubmit}>
-                <input className="input" ref={(input) => { this.input = input }} type="text" placeholder="add to-do"></input>
-            </form>
+            <div>
+                <form id="form" onClick={(e) => e.stopPropagation()} onSubmit={this.handleSubmit}>
+                    <input className="input" ref={(input) => { this.input = input }} type="text" placeholder="add to-do"></input>
+                </form>
+                Due date
+                <input ref={(date) => {this.date = date}} onClick={(e) => e.stopPropagation()} type="text" className="datepicker" />
+            </div>
         );
     }
 }
@@ -170,8 +177,8 @@ class List extends React.Component {
         this.openPanel = this.openPanel.bind(this);
         this.editTodo = this.editTodo.bind(this);
     }
-    addToDo(input) {
-        this.props.addToDo(input, this.props.name);
+    addToDo(input, due_date) {
+        this.props.addToDo(input, due_date, this.props.name);
     }
     toggleToDo(checkbox) {
         this.props.toggleToDo(checkbox, this.props.name);
@@ -219,8 +226,8 @@ class ListMaker extends React.Component {
     toggleToDo(checkbox, name) {
         this.props.toggleToDo(checkbox, name);
     }
-    addToDo(input, name) {
-        this.props.addToDo(input, name);
+    addToDo(input, due_date, name) {
+        this.props.addToDo(input, due_date, name);
     }
     enterHover() {
         this.trash.classList.remove('hidden');
@@ -487,14 +494,18 @@ class App extends React.Component {
         }
     } //end of new code
     //new code in order to save all changes in the app parent
-    addToDo(input, name) {
+    addToDo(input, due_date, name) {
         var newItem = input.value;
         var newLists = this.state.lists;
         for(var i=0; i < newLists.length; i++) {
             if(newLists[i].name === name) {
                 var newTodo = {};
                 newTodo.title = newItem;
-                newTodo.due_date = null;
+                if(due_date !== '') {
+                    newTodo.due_date = due_date;
+                } else {
+                    newTodo.due_date = null;
+                }
                 newTodo.description = null;
                 newLists[i].todos.push(newTodo);
                 break;
